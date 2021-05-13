@@ -125,7 +125,7 @@ class GibbsSampling(ABC):
                 samples[key].append(new_val)
 
                 if issubclass(cond.generator.__class__,MHSampling) and progress_bar:
-                    _range.set_description(f'Rate {key}: {cond.generator.iter/(i+1):.2f}')
+                    _range.set_description(f'Rate {key}: {cond.generator.accept/(i+1):.2f}')
                     
 
         if progress_bar:

@@ -11,6 +11,11 @@ pyro-ppl = "*"
 tqdm = "*"
 seaborn = "*"
 jupyterlab = "*"
+scikit-learn = "*"
+nevergrad = "*"
+pyspark = "*"
+torchvision = "*"
+captum = "*"
 
 [dev-packages]
 

@@ -4,33 +4,6 @@ from scipy.stats import beta
 import pandas as pd
 import pdb
 
-def read_file_tzm(path):
-    " read true tzm.csv to a list of tzm"
-    tzm_list = []
-    with open(path,'r') as f:
-        while True:
-            line = f.readline()
-            if not line:
-                break
-            line = line.strip().split(',')
-            tzm_list.append([float(t) for t in line])
-    return tzm_list
-
-def read_template(paths,columns = [1, 3, 5, 11, 13]):
-    """
-    read dat file and return dataframe with Flux and magnitude for each color band
-    """
-    data = {'z':[],'F_bands':[]}
-    for i in range(len(paths)):
-        df = pd.read_csv(paths[i],skiprows=1,sep=",\s+", header=None,engine='python')
-        data['z'].append(df[0].values)
-        data['F_bands'].append(df[columns].values)
-    return data
-
-def read_flux(path):
-    data = pd.read_csv(path,header=None).values
-    return data
-
 
 def generate_plot_dirichlet(x,params,index=1,len_i=20,len_j=2,len_k=20,file_name='plot.png', num_bins=50):
     # fig, ax = plt.subplots()

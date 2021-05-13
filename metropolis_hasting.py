@@ -11,14 +11,14 @@ from tqdm import tqdm,trange
 class MHSampling(ABC):
     def __init__(self,step_size=10.0):
        
-        self.iter = 0
+        self.accept = 0
         self.step_size = step_size
         pass 
     
     @abstractmethod
     def score(self,x,y):
         """
-        thid method will return score for each value in each steps
+        this method will return score for each value in each steps
         """
 
     @abstractmethod
@@ -40,7 +40,7 @@ class MHSampling(ABC):
             if np.log(np.random.uniform()) < (new_score - old_score):
                 old_val = new_val
                 # old_score = new_score 
-                self.iter+=1
+                self.accept+=1
                 if progress_bar:
                     _range.set_description(f"Accepted rate: {self.iter/i * 100:.2f}")
                 # print('Accpeted')
