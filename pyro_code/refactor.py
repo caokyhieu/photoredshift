@@ -433,46 +433,38 @@ def plot_samples_post(samples,true_params=None):
     
     fig.savefig("post.png")
 
-m1=-1
-m2=2.
-sig1=1.
-sig2=2.
-a=1
-b=2
-c=3
-n_l=100
-n_u=100
-p = np.array([1,5,9])
-
-gamma = np.array([1,2,4])
-theta = np.array([a,b,c])
-   
-print(theta)
-x_l = np.random.normal(m1,np.sqrt(sig1),size=n_l)
-x_u = np.random.normal(m2,np.sqrt(sig2),size=n_u)
-y = np.random.normal(0,0.3,size=n_l) + np.matmul(radial_basic_function(x_l,p,gamma) ,theta).flatten()  ##a*x_l**2 - c * np.exp(x_l) 
-y_u = np.random.normal(0,0.3,size=n_u) + np.matmul(radial_basic_function(x_u,p,gamma) ,theta).flatten()##a*x_u**2 - c  * np.exp(x_u) 
+def run_experiment_basic_function(m1=-1.,m2=2.,sig1=1.,sig2=2.,
+                                a=1,b=2,c=3,n_l=100,n_u=100,
+                                p=np.array([1,5,9]),
+                                gamma=np.array([1,2,4]),*args,**kwargs):
+    
+    theta = np.array([a,b,c])
+    
+    print(theta)
+    x_l = np.random.normal(m1,np.sqrt(sig1),size=n_l)
+    x_u = np.random.normal(m2,np.sqrt(sig2),size=n_u)
+    y = np.random.normal(0,0.3,size=n_l) + np.matmul(radial_basic_function(x_l,p,gamma) ,theta).flatten()  ##a*x_l**2 - c * np.exp(x_l) 
+    y_u = np.random.normal(0,0.3,size=n_u) + np.matmul(radial_basic_function(x_u,p,gamma) ,theta).flatten()##a*x_u**2 - c  * np.exp(x_u) 
 
 
-init_values = OrderedDict({'theta':[np.random.normal(loc=0,scale=10,size=3)],
-                            'phi1':[np.array([np.random.normal(loc=0,scale=10),invgamma.rvs(1/2, loc=0, scale=1/2)])],
-                            'phi2': [np.array([np.random.normal(loc=0,scale=10),invgamma.rvs(1/2, loc=0, scale=1/2)])],
-                            'p': [np.random.normal(loc=0,scale=10,size=3)],
-                            'gamma': [invgamma.rvs(1/2, loc=0, scale=2, size=3)],
-})
+    init_values = OrderedDict({'theta':[np.random.normal(loc=0,scale=10,size=3)],
+                                'phi1':[np.array([np.random.normal(loc=0,scale=10),invgamma.rvs(1/2, loc=0, scale=1/2)])],
+                                'phi2': [np.array([np.random.normal(loc=0,scale=10),invgamma.rvs(1/2, loc=0, scale=1/2)])],
+                                'p': [np.random.normal(loc=0,scale=10,size=3)],
+                                'gamma': [invgamma.rvs(1/2, loc=0, scale=2, size=3)],
+    })
 
-n_samples=5000
-burn_in = 200
+    n_samples=5000
+    burn_in = 200
 
-true_params = {'theta':theta,'p':p,'gamma':gamma}
-photometric = TestGibbsSampling(y,x_l,x_u,scale=1.,n_samples=1,var_origin=False,time=0)
-samples = photometric(init_values,n_samples=n_samples,progress_bar=True)
-samples = {k:v[burn_in:] for k,v in samples.items()}
+    true_params = {'theta':theta,'p':p,'gamma':gamma}
+    photometric = TestGibbsSampling(y,x_l,x_u,scale=1.,n_samples=1,var_origin=False,time=0)
+    samples = photometric(init_values,n_samples=n_samples,progress_bar=True)
+    samples = {k:v[burn_in:] for k,v in samples.items()}
 
-photometric2 = TestGibbsSampling(y,x_l,x_u,scale=1.,n_samples=1,var_origin=True,time=0)
-samples2 = photometric(init_values,n_samples=n_samples,progress_bar=True)
-samples2 = {k:v[burn_in:] for k,v in samples2.items()}
+    photometric2 = TestGibbsSampling(y,x_l,x_u,scale=1.,n_samples=1,var_origin=True,time=0)
+    samples2 = photometric(init_values,n_samples=n_samples,progress_bar=True)
+    samples2 = {k:v[burn_in:] for k,v in samples2.items()}
 
-plot_predictive(x_l,x_u,y,y_u,samples,samples2,true_params)
-plot_samples_post(samples,true_params)
-pdb.set_trace()
+    plot_predictive(x_l,x_u,y,y_u,samples,samples2,true_params)
+    plot_samples_post(samples,true_params)
