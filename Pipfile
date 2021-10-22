@@ -7,17 +7,46 @@ name = "pypi"
 numpy = "*"
 matplotlib = "*"
 scipy = "*"
-pyro-ppl = "*"
+pyro-ppl = {git = "https://github.com/pyro-ppl/pyro.git"}
 tqdm = "*"
 seaborn = "*"
 jupyterlab = "*"
 scikit-learn = "*"
 nevergrad = "*"
 pyspark = "*"
-torchvision = "*"
 captum = "*"
+h5py = "*"
+prettytable = "*"
+requests = "*"
+beautifulsoup4 = "*"
+lxml = "*"
+pyyaml = "*"
+tensorboard = "*"
+numba = "*"
+dash = "*"
+plotly = "*"
+xlrd = "*"
+openpyxl = "*"
+9 = "*"
+cupy-cuda110 = {path = "./cupy_cuda110-9.0.0-cp36-cp36m-manylinux1_x86_64.whl"}
+ray = "*"
+xlsxwriter = "*"
+django = "==3.0.*"
+yfinance = "*"
+tensorflow = "*"
+finta = "*"
+dask = {extras = ["dataframe"], version = "*"}
+dowhy = "*"
+torch = "*"
+torchaudio = "*"
+torchvision = "*"
+psycopg2 = "*"
+python-decouple = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true
