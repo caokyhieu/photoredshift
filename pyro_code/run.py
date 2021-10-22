@@ -8,7 +8,6 @@ import time
 import pdb
 import seaborn as sns
 import os
-from itertools import product
 # np.random.seed(seed=123)
 ## load data
 def radial_basic_function(x,p,gamma):
@@ -381,7 +380,7 @@ def run_exp(m1=-2,m2=0.5,sig1=1.,sig2=1.,a=1,b=2,c=3,n_l=100,n_u=100,path_fig=''
     y_u = np.random.normal(0,0.3,size=n_u) + np.sum(covariate_export(x_u) * theta ,axis=1)##a*x_u**2 - c  * np.exp(x_u) 
    
 
-    init_values = lambda x: OrderedDict({'theta':[np.random.normal(loc=0,scale=10,size=3)],
+    init_values = OrderedDict({'theta':[np.random.normal(loc=0,scale=10,size=3)],
                                 'phi1':[np.array([np.random.normal(loc=0,scale=10),invgamma.rvs(1/2, loc=0, scale=1/2)])],
                                 'phi2': [np.array([np.random.normal(loc=0,scale=10),invgamma.rvs(1/2, loc=0, scale=1/2)])],
     })
@@ -443,19 +442,7 @@ def run_exp(m1=-2,m2=0.5,sig1=1.,sig2=1.,a=1,b=2,c=3,n_l=100,n_u=100,path_fig=''
 
     fig.savefig(path_fig+ '/'+f'prediction_{n_samples}.png')
 
-m1= -1.
-# m2= 4.
-sig1=2**2
-# sig2=4.
-a=1
-b=1.
-c=1.
-list_m2 = [ 10.]
-list_sig2 = [2.**2]
-for m2,sig2 in product(list_m2,list_sig2):
-    name_folder = f"fig/miss_RBF_linear_m1={m1}_m2={m2}_sig1={sig1}_sig2={sig2}_a={a}_b={b}_c={c}"
-    os.makedirs(name_folder,exist_ok=True)
-    run_exp(m1,m2,sig1,sig2,a,b,c,path_fig=name_folder)
+
 
 
 
