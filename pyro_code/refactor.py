@@ -386,7 +386,7 @@ def plot_predictive(x_l,x_u,y,y_u,sample1,sample2,true_params):
                                          'sigma':['1']*len(model_weight2) * len(x_u),\
                                         'true_y':np.tile(y_u,len(model_weight2)) })
     
-    predict_df = pd.concat([predict_df_1,predict_df_2])
+    predict_df = pd.concat([predict_df_1,predict_df_2],axis=0,ignore_index=True)
     our_model_error = (predict_df[predict_df['sigma']=='our model']['y_pred'] - predict_df[predict_df['sigma']=='our model']['true_y'])**2
     sig_1_model_error = (predict_df[predict_df['sigma']=='1']['y_pred'] - predict_df[predict_df['sigma']=='1']['true_y'])**2
     axes.set_title("Our model Error {:.3f}, {} model error {:.3f}".format(our_model_error.mean()\
@@ -465,6 +465,5 @@ def run_experiment_basic_function(m1=-1.,m2=2.,sig1=1.,sig2=2.,
     photometric2 = TestGibbsSampling(y,x_l,x_u,scale=1.,n_samples=1,var_origin=True,time=0)
     samples2 = photometric(init_values,n_samples=n_samples,progress_bar=True)
     samples2 = {k:v[burn_in:] for k,v in samples2.items()}
-
     plot_predictive(x_l,x_u,y,y_u,samples,samples2,true_params)
     plot_samples_post(samples,true_params)
