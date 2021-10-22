@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import beta
 import pandas as pd
 import bisect
-import cupy as cp
+
 def mean_flux(tzm,template):
         """
         flux: {F_b}g, here we have N_b bands

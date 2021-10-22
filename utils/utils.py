@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 import random
 import seaborn as sns
 from utils.util_photometric import read_template,read_flux,read_file_tzm
-import cupy as cp
+
 
 def generate_plot_dirichlet(x,params,index=1,len_i=20,len_j=2,len_k=20,file_name='plot.png', num_bins=50):
     # fig, ax = plt.subplots()

@@ -8,7 +8,7 @@ from tqdm import tqdm
 import pdb
 from abc import ABC,abstractmethod
 from tqdm import tqdm,trange
-import cupy as cp
+
 class MHSampling(ABC):
     def __init__(self,step_size=10.0):
        

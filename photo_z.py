@@ -4,14 +4,11 @@ import scipy.stats as stats
 from models.metropolis_hasting import MetropolisHasting,MHSampling
 from utils.util_photometric import read_template,read_flux,mean_flux,find_tzm_index,read_file_tzm,sample_tzm
 from utils.visualize import Visualizer
-import pdb
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor   
 from utils.utils import DataGenerator
 # from numba import jit,jit_module
-import cupy as cp
-import ray
-import psutil
+
 from models.ABC import ABCSampling
 from tqdm import tqdm
 import scipy.stats as stats
@@ -20,47 +17,16 @@ import sys
 import glob
 import copy
 import random
-from dtaidistance import dtw_ndim
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.linear_model import LinearRegression
-
-
-# num_cpus = psutil.cpu_count(logical=False)
-# ray.init(num_cpus=num_cpus)
-## parallel
-# from concurrent.futures import ThreadPoolExecutor
-# e = ThreadPoolExecutor(6)
-## utils func 
-
-## config for spark
-# spark_home = '/opt/spark'
-# if 'SPARK_HOME' not in os.environ:
-#     os.environ['SPARK_HOME'] = spark_home
-
-# SPARK_HOME = os.environ['SPARK_HOME']
-
-# sys.path.insert(0,os.path.join(SPARK_HOME,"python"))
-# for lib in glob.glob(os.path.join(SPARK_HOME, "python", "lib", "*.zip")):
-#     sys.path.insert(0,lib)
-
-from pyspark import SparkContext
-from pyspark import SparkConf
-# 
-conf=SparkConf()
-conf.set("spark.executor.memory", "512m")
-conf.set("spark.driver.memory", "40g")
-conf.set("spark.cores.max", "10")
-conf.set("spark.driver.maxResultSize","0")
-conf.set("spark.sql.shuffle.partitions","5")
-
-sc = SparkContext.getOrCreate(conf)
+from decouple import config
 
 
 
 def prior_sample(n_samples,ff,__bin_edge):
 
-    return sc.parallelize(np.random.multinomial(1,ff,size=n_samples)).map(lambda x: tzm_transform(x,__bin_edge))
-    # return list(map(lambda x: tzm_transform(x,__bin_edge),np.random.multinomial(1,ff,size=n_samples)))
+    # return sc.parallelize(np.random.multinomial(1,ff,size=n_samples)).map(lambda x: tzm_transform(x,__bin_edge))
+    return list(map(lambda x: tzm_transform(x,__bin_edge),np.random.multinomial(1,ff,size=n_samples)))
 
 def distance_instance(instance,data):
     instance = np.array(instance)[np.newaxis,:]
@@ -388,72 +354,23 @@ class ConditionalTZM(ConditionalDistribution):
 
         
     def set_params(self,**kwargs):
-        # self.__dict__.update({'flux':kwargs['flux']})
         self.__dict__.update(kwargs)
-        # print(f"Inside ConditionalTZM {len(self.fraction)}")
-        ### loop for all galaxies
-        ## flux has shape (N_g,N_b), this is the observed data
-        # self.samples = []
-        # ### need to parallel
-        # # self.samples = self.process_multi(list(range(len(self.flux))))
+       
+        # METROPOLIS
+        samples=[]
+        for i in range(len(self.flux)):
+            func = self.prob_func(flux=self.flux[i],fraction=self.fraction)
+            self.generator =  TZMMetropolis(None,self.template,scale=self.scale)
+            self.generator.set_target(func)
+            samples.append(self.generator(self.tzm[i],n_samples=self.n_samples,progress_bar=False)[-1])
         
-        # listoflist = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
-        
-        # lists = listoflist(list(range(len(self.flux))),sz=len(self.flux)//num_cpus)
-        # fluxes_ref = ray.put(self.flux)
-        # template_ref = ray.put(self.template)
-        # tzm_ref = ray.put(self.tzm)
-        # fraction_ref = ray.put(self.fraction)
-        # generator_ref = ray.put(self.generator)
-        # samples_ = ray.get([multi_process.remote(fluxes_ref,template_ref,li,self.scale,self.prob_func,fraction_ref,tzm_ref,generator_ref) for li in lists])
-
-        ## for i in samples_:
-        ##     self.samples+= i
-
-        ### code for pyspark
-        
-        # data =  sc.parallelize(list(zip(self.flux,self.tzm))) ##list(zip(flux,tzm))
-        # print(f'Data count: {data.count()}')
-        # data = data.map(apply_func(self.fraction,self.max_z,self.bin_edge,a,self.template,self.S_N_ratio,self.scale))
-        # samples = data.collect()
-
-        # samples=[]
-        # for i in range(len(self.flux)):
-            # func = self.prob_func(flux=self.flux[i],fraction=self.fraction)
-            # self.generator =  TZMMetropolis(None,self.template,scale=self.scale)
-            # self.generator.set_target(func)
-            # samples.append(self.generator(self.tzm[i],n_samples=self.n_samples,progress_bar=False)[-1])
-        
-        ## for ABC
-        self.generator.set_prior(self.fraction)
-        samples = self.generator.sample(len(self.flux))
-        print(samples.shape)
-
-        ## check fraction
-        # ff = np.array(self.fraction)
-        # ff = ff.reshape(len(self.bin_edge[0])-1,len(self.bin_edge[1])-1,len(self.bin_edge[2])-1)
-
-        # print(f"Z: {self.bin_edge[1][np.argmax(np.sum(ff,axis=(0,2)))]}")
-        # self
-
-
-        # ##vectorize
-        # use_func = vectorize_func(self.flux,self.prob_func,self.fraction,self.tzm,self.generator)
-        # ## 
-        # self.samples = list(map(use_func,[i for i in range(len(self.flux))]))
-
-
-        # # # # self.samples = generate_tzm(self.flux,self.fraction,self.template,self.tzm,self.scale,self.n_samples,self.prob_func)
-        self.samples = np.array(samples)
+        # ## for ABC
         # self.generator.set_prior(self.fraction)
-        # for i in range(len(self.flux)):
-        #     self.generator.set_data(self.flux[i:i+1])
-        
-        # self.samples = self.generator.sample(n_samples=len(self.flux))
-        # print(self.samples.shape)
-        # futures = [e.submit(self.return_sample, flux, tzm) for flux,tzm in list(zip(self.flux,self.tzm))]
-        # self.samples = [f.result() for f in futures]
+        # samples = self.generator.sample(len(self.flux))
+        # print(samples.shape)
 
+        self.samples = np.array(samples)
+        
    
     def sample(self):
         ### normalize the iter in generator
@@ -574,25 +491,28 @@ class PhotometricGibbsSampling(GibbsSampling):
 
 if __name__ == '__main__':
 
-    # path_obs = 'obs_F.csv'
-    # path_obs = '/data/phuocbui/MCMC/reimplement/data/MockCatalogJouvel.dat'
-    path_obs ='/data/phuocbui/MCMC/reimplement/data/clean_data_v2.csv'
+    path_obs =config('DATA_OBS')
     # path_obs ='/data/phuocbui/MCMC/reimplement/data/combine_data.csv'
     
-    list_temp_path = ['/data/phuocbui/MCMC/reimplement/data/Ell2_flux_z_no_header.dat',
-                        '/data/phuocbui/MCMC/reimplement/data/Ell5_flux_z_no_header.dat']
-    real_data_path = '/data/phuocbui/MCMC/reimplement/data/true_tzm.csv'
-    a = 1.0
-    S_N_ratio = 5.0
-    n_t = 2
-    min_m = -2.0
-    max_m = 17.0
-    min_z = 0.0
-    max_z = 1.3
-    zbin = 50
-    mbin = 10
-    num_g = 5000#553019
-    N_MCMC = 500
+    list_temp_path = [config('Ell2'),config('Ell5')]
+    print(list_temp_path)
+    real_data_path = config('REAL_DATA')
+    print(real_data_path)
+    a = float(config('a'))
+    print(a)
+    S_N_ratio = float(config('S_N_ratio'))
+    print(S_N_ratio)
+    n_t = int(config('n_t'))
+    print(n_t)
+    min_m = float(config('min_m'))
+    max_m = float(config('max_m'))
+    min_z = float(config('min_z'))
+    max_z = float(config('max_z'))
+    zbin = int(config('zbin'))
+    mbin = int(config('mbin'))
+    num_g = int(config('num_g'))#553019
+    N_MCMC = int(config('N_MCMC'))
+
     # print(f"length of fraction: {len(init_values['fraction'][0])}")
     # print(f"length of tzm: {len(init_values['tzm'][0])}")
     # pdb.set_trace()
@@ -606,21 +526,7 @@ if __name__ == '__main__':
 
         samples = photometric(init_values,n_samples=N_MCMC,progress_bar=True)
         return samples
-    # with ProcessPoolExecutor(max_workers=8) as executor:
-    #     samples_ = executor.map(generate_chain, range(4))
-    # futures = [e.submit(generate_chain) for i in range(5)]
-    # samples_ = [f.result() for f in futures]
-    # new_samples = {}
-    # new_samples['fraction'] = pd.read_csv('/home/phuocbui/MCMC/hierarchical model/MCMC_samples_f.csv',header=None).values
-    # new_t = pd.read_csv('/home/phuocbui/MCMC/hierarchical model/Cl_data_included_MCMC_samples_t.csv',header=None).values
-    # new_z= pd.read_csv('/home/phuocbui/MCMC/hierarchical model/Cl_data_included_MCMC_samples_z.csv',header=None).values
-    # new_m = pd.read_csv('/home/phuocbui/MCMC/hierarchical model/Cl_data_included_MCMC_samples_m.csv',header=None).values
-    # new_samples['tzm'] = [list(zip(new_t[i],new_z[i],new_m[i])) for i in range(len(new_t))]
-    # samples = {'fraction':[],'tzm':[]}
-    # for sam in samples_:
-    #     for k,v in sam.items():
-    #         samples[k]+=v
-     # real_tzm =  read_file_tzm(real_data_path)
+    
     real_tzm = DataGenerator(path_obs,cols=[0,1,2],cuda=False,header=None)
     
     init_values = {'fraction':[np.random.uniform(size=n_t *zbin * mbin)],'tzm':[np.array([[np.random.binomial(1,0.5),np.random.uniform(low=min_z,high=max_z),np.random.uniform(low=min_m,high=max_m)] for i in range(num_g)])]}
@@ -634,13 +540,4 @@ if __name__ == '__main__':
     vis.MCMC_converge('MCMC_converge')
     vis.scatter_z('z')
     vis.confusion_t('t')
-    # for i,samp in enumerate(samples_):
-    #     vis = Visualizer(samp,real_tzm,photometric.bin_t,photometric.bin_z,photometric.bin_m,burn_in=0.2)
-
-    #     # vis.plot_tzm()
-    #     vis.plot_ff(name=f'{i}_ff.png')
-    #     ### plot 
-
-    #     vis.MCMC_converge(f'MCMC_converge_{i}')
-    #     vis.scatter_z(f'z_{i}')
-    #     vis.confusion_t(f't_{i}')
+   
