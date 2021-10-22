@@ -19,7 +19,6 @@ import copy
 import random
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.linear_model import LinearRegression
-from decouple import config
 
 
 
@@ -490,28 +489,28 @@ class PhotometricGibbsSampling(GibbsSampling):
 
 
 if __name__ == '__main__':
-
-    path_obs =config('DATA_OBS')
-    # path_obs ='/data/phuocbui/MCMC/reimplement/data/combine_data.csv'
+    ## data path
+    path_obs ='data/clean_data_v2.csv'    
+    list_temp_path = ['data/Ell2_flux_z_no_header.dat','data/Ell5_flux_z_no_header.dat']
+    real_data_path = 'data/true_tzm.csv'
     
-    list_temp_path = [config('Ell2'),config('Ell5')]
-    print(list_temp_path)
-    real_data_path = config('REAL_DATA')
-    print(real_data_path)
-    a = float(config('a'))
-    print(a)
-    S_N_ratio = float(config('S_N_ratio'))
-    print(S_N_ratio)
-    n_t = int(config('n_t'))
-    print(n_t)
-    min_m = float(config('min_m'))
-    max_m = float(config('max_m'))
-    min_z = float(config('min_z'))
-    max_z = float(config('max_z'))
-    zbin = int(config('zbin'))
-    mbin = int(config('mbin'))
-    num_g = int(config('num_g'))#553019
-    N_MCMC = int(config('N_MCMC'))
+    ## config for runing MCMC
+    ## a is  parameter for normalizing  likelihood 
+    a = 1.0
+    ## S_N_ratio is used to calculated Photometric variance
+    S_N_ratio = 5.0
+    ## number of type
+    n_t = 2
+    ## range value of m,z
+    min_m = -2.0
+    max_m = 17.0
+    min_z = 0.0
+    max_z = 1.3
+    ### numer of bins to discrete z and m
+    zbin = 50
+    mbin = 10
+    num_g = 5000
+    N_MCMC = 500
 
     # print(f"length of fraction: {len(init_values['fraction'][0])}")
     # print(f"length of tzm: {len(init_values['tzm'][0])}")
